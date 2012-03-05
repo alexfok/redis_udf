@@ -1,0 +1,38 @@
+**
+**  Allows data synchronization from MySQL to Redis
+** Syntax for the new commands are:
+** create function <function_name> returns {string|real|integer}
+**                soname <name_of_shared_library>
+** drop function <function_name>
+**
+** Each defined function may have a xxxx_init function and a xxxx_deinit
+** function.  The init function should alloc memory for the function
+** and tell the main function about the max length of the result
+** (for string functions), number of decimals (for double functions) and
+** if the result may be a null value.
+** Compile:
+** gcc -shared -o redis_udf.so redis_udf.c  -I "/root/mysql-src/mysql-5.5.21/include" -I "/usr/include/mysql" -fPIC libhiredis.a
+** copy the lib to MySQL plugin directory
+**      cp redis_udf.so /usr/lib64/mysql/plugin
+** After the library is made one must notify mysqld about the new
+** functions with the commands:
+**      CREATE FUNCTION redis_set RETURNS INTEGER SONAME 'redis_udf.so';
+**      CREATE FUNCTION redis_servers_set RETURNS INTEGER SONAME 'redis_udf.so';
+**
+** to drop the functions, do the following:
+**      DROP FUNCTION redis_set;
+**      DROP FUNCTION redis_servers_set;
+**
+** The CREATE FUNCTION and DROP FUNCTION update the func@mysql table.
+**
+**
+** Usage examples:
+**     select redis_servers_set('192.168.60.10',6379,'password');
+**     select redis_servers_set('192.168.60.10',6379);
+**     select redis_set('ro222','1121235');
+**     select redis_sadd('ro222','1121235');
+**     select redis_srem('ro222','1121235');
+**
+** Thanks to  Salvatore Sanfilippo <antirez at gmail dot com> and Pieter Noordhuis <pcnoordhuis at gmail dot com> for used hiredis C client
+**
+
